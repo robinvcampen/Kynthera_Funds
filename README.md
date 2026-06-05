@@ -24,19 +24,82 @@ date, description, amount, balance, category
 
 A sample file is included in `data/sample_transactions.csv`.
 
-## How to Run
+How to Run the App
 
-Install dependencies:
+Follow the steps below to run the Kynthera Funds MVP locally.
 
-```bash
+1. Clone or download the repository
+
+First, download the GitHub repository to your computer or clone it using Git:
+
+git clone https://github.com/your-username/Kynthera_Funds.git
+
+Then move into the project folder:
+
+cd Kynthera_Funds
+
+2. Check the project structure
+
+Make sure the project folder contains the following files and folders:
+
+Kynthera_Funds/
+├── app.py
+├── requirements.txt
+├── README.md
+├── data/
+│   └── sample_transactions.csv
+└── src/
+├── init.py
+├── data_processing.py
+└── scoring.py
+
+3. Install the required packages in your terminal
+
+Install the required Python packages using:
+
 pip install -r requirements.txt
-```
 
-Run the app:
+This installs the packages needed to run the app, including Streamlit, Pandas, and NumPy.
 
-```bash
+4. Run the Streamlit app
+
+Start the app with the following command:
+
 streamlit run app.py
-```
+
+After running this command, Streamlit will open the app in your browser. If it does not open automatically, copy the local URL shown in the terminal, usually:
+
+http://localhost:8501
+
+and paste it into your browser.
+
+5. Upload the sample transaction file
+
+Once the app is open, upload the sample transaction file located in:
+
+data/sample_transactions.csv
+
+The app will then process the transaction data and generate:
+
+* a credit confidence score;
+* an approval recommendation;
+* a suggested maximum loan amount;
+* key cash-flow signals;
+* explainable score drivers;
+* a monthly cash-flow overview;
+* a transparent explanation of how the score is calculated.
+
+6. Stop the app
+
+To stop the app, go back to the terminal and press:
+
+Control + C
+
+Notes
+
+This MVP uses a CSV upload to simulate transaction data access. In a production version, this input would be replaced by PSD2/open banking API connections.
+
+The current credit score is rule-based and explainable by design. In a later version, the model could be validated and improved using real repayment and default outcome data.
 
 ## MVP Scope
 
