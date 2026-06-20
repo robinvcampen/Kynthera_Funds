@@ -1,12 +1,21 @@
+# Import Streamlit, which is used to build the web app interface
 import streamlit as st
+
+# Import pandas, which is used to work with tabular data
 import pandas as pd
+
+# Import functions that load and process the transaction data
 from src.data_processing import load_transactions, calculate_cashflow_metrics
+
+# Import the function that calculates the credit score and recommendation
 from src.scoring import calculate_credit_score
 
 
 # -----------------------------
 # Page configuration
 # -----------------------------
+
+# Set the browser tab title and use the full page width
 st.set_page_config(
     page_title="Kynthera Funds MVP",
     layout="wide"
@@ -16,6 +25,8 @@ st.set_page_config(
 # -----------------------------
 # Styling
 # -----------------------------
+
+# Inject custom CSS to control the colours, cards, spacing, and dashboard layout
 st.markdown(
     """
     <style>
@@ -175,7 +186,7 @@ st.markdown(
         color: #0b0f19 !important;
     }
 
-    /* Horizontal spacing */
+    /* Page spacing */
     .block-container {
         padding-top: 2rem;
         padding-bottom: 3rem;
@@ -189,6 +200,8 @@ st.markdown(
 # -----------------------------
 # Helper for custom metric cards
 # -----------------------------
+
+# Display one cash-flow metric as a reusable styled card
 def signal_card(label, value):
     st.markdown(
         f"""
@@ -204,11 +217,16 @@ def signal_card(label, value):
 # -----------------------------
 # Header
 # -----------------------------
+
+# Display the main app title and description
 st.markdown(
     """
     <div class="hero-card">
         <h1>Kynthera Funds MVP</h1>
-        <p>Cash-flow intelligence for SME lending. Turning transaction data into explainable credit decisions.</p>
+        <p>
+            Cash-flow intelligence for SME lending.
+            Turning transaction data into explainable credit decisions.
+        </p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -218,6 +236,7 @@ st.markdown(
 # -----------------------------
 # Upload section
 # -----------------------------
+
 st.markdown("## Upload SME transaction data")
 
 st.write(
@@ -225,8 +244,13 @@ st.write(
     "PSD2 open banking APIs. For the MVP, a CSV upload simulates the same transaction-data input."
 )
 
-uploaded_file = st.file_uploader("Upload transaction CSV", type=["csv"])
+# Allow the user to upload a CSV file containing transaction data
+uploaded_file = st.file_uploader(
+    "Upload transaction CSV",
+    type=["csv"]
+)
 
+# Stop the app until a file has been uploaded
 if uploaded_file is None:
     st.info("Use the sample file: `data/sample_transactions.csv`.")
     st.stop()
@@ -235,32 +259,44 @@ if uploaded_file is None:
 # -----------------------------
 # Load and process data
 # -----------------------------
+
+# Try to load and validate the uploaded transaction file
 try:
     df = load_transactions(uploaded_file)
+
+# Show an error and stop the app if the file cannot be processed
 except Exception as e:
     st.error(f"Could not process file: {e}")
     st.stop()
 
+# Calculate the cash-flow metrics used by the scoring model
 metrics = calculate_cashflow_metrics(df)
+
+# Generate the credit score, recommendation, loan estimate, and score drivers
 result = calculate_credit_score(metrics)
 
 
 # -----------------------------
 # Recommendation logic
 # -----------------------------
+
+# Extract the main scoring results
 score = result["score"]
 recommendation = result["recommendation"]
 
+# Convert the recommendation into clear user-facing text
 if recommendation == "Approve":
     recommendation_text = "Approve"
     recommendation_explanation = (
         "The SME shows sufficient cash-flow strength for a positive lending recommendation."
     )
+
 elif recommendation == "Manual review":
     recommendation_text = "Manual Review"
     recommendation_explanation = (
         "The SME has mixed signals. A credit officer should review the case before approval."
     )
+
 else:
     recommendation_text = "Reject"
     recommendation_explanation = (
@@ -271,8 +307,11 @@ else:
 # -----------------------------
 # Risk report
 # -----------------------------
+
+# Display the main credit risk output
 st.markdown("## Kynthera Risk Report")
 
+# Place the credit score and loan estimate next to each other
 left, right = st.columns([1.2, 2])
 
 with left:
@@ -293,10 +332,13 @@ with right:
         f"""
         <div class="section-card">
             <div class="card-label">Suggested maximum loan</div>
-            <div class="card-value">€{result['suggested_max_loan']:,.0f}</div>
+            <div class="card-value">
+                €{result['suggested_max_loan']:,.0f}
+            </div>
             <p class="muted-text">
-                This loan estimate is based on the SME's average monthly revenue, cash-flow strength,
-                and risk score. It is intended as a decision-support output, not as an automatic final credit decision.
+                This loan estimate is based on the SME's average monthly revenue,
+                cash-flow strength, and risk score. It is intended as a
+                decision-support output, not as an automatic final credit decision.
             </p>
         </div>
         """,
@@ -307,50 +349,90 @@ with right:
 # -----------------------------
 # Cash-flow metrics
 # -----------------------------
+
+# Display the core cash-flow signals used in the lending assessment
 st.markdown("## Key Cash-flow Signals")
 
 m1, m2, m3, m4 = st.columns(4)
 
 with m1:
-    signal_card("Average monthly revenue", f"€{metrics['avg_monthly_revenue']:,.0f}")
+    signal_card(
+        "Average monthly revenue",
+        f"€{metrics['avg_monthly_revenue']:,.0f}"
+    )
 
 with m2:
-    signal_card("Average monthly outflows", f"€{metrics['avg_monthly_outflows']:,.0f}")
+    signal_card(
+        "Average monthly outflows",
+        f"€{metrics['avg_monthly_outflows']:,.0f}"
+    )
 
 with m3:
-    signal_card("Average balance", f"€{metrics['avg_balance']:,.0f}")
+    signal_card(
+        "Average balance",
+        f"€{metrics['avg_balance']:,.0f}"
+    )
 
 with m4:
-    signal_card("Negative balance days", metrics["negative_balance_days"])
+    signal_card(
+        "Negative balance days",
+        metrics["negative_balance_days"]
+    )
 
 m5, m6, m7, m8 = st.columns(4)
 
 with m5:
-    signal_card("Revenue stability", f"{metrics['revenue_stability']:.2f}")
+    signal_card(
+        "Revenue stability",
+        f"{metrics['revenue_stability']:.2f}"
+    )
 
 with m6:
-    signal_card("Liquidity buffer", f"{metrics['liquidity_buffer_months']:.2f} months")
+    signal_card(
+        "Liquidity buffer",
+        f"{metrics['liquidity_buffer_months']:.2f} months"
+    )
 
 with m7:
-    signal_card("Volatility risk", f"{metrics['cashflow_volatility']:.2f}")
+    signal_card(
+        "Volatility risk",
+        f"{metrics['cashflow_volatility']:.2f}"
+    )
 
 with m8:
-    signal_card("Growth trend", f"{metrics['growth_trend'] * 100:.1f}%")
+    signal_card(
+        "Growth trend",
+        f"{metrics['growth_trend'] * 100:.1f}%"
+    )
 
 
 # -----------------------------
 # Score drivers
 # -----------------------------
+
 st.markdown("## Explainable Score Drivers")
 
-positive_drivers = [d for d in result["drivers"] if d[1] == "positive"]
-neutral_drivers = [d for d in result["drivers"] if d[1] == "neutral"]
-negative_drivers = [d for d in result["drivers"] if d[1] == "negative"]
+# Group the score drivers into strengths, watchlist items, and risks
+positive_drivers = [
+    driver for driver in result["drivers"]
+    if driver[1] == "positive"
+]
+
+neutral_drivers = [
+    driver for driver in result["drivers"]
+    if driver[1] == "neutral"
+]
+
+negative_drivers = [
+    driver for driver in result["drivers"]
+    if driver[1] == "negative"
+]
 
 c1, c2, c3 = st.columns(3)
 
 with c1:
     st.markdown("### Strengths")
+
     if positive_drivers:
         for name, status, explanation in positive_drivers:
             st.write(f"**{name}:** {explanation}")
@@ -359,6 +441,7 @@ with c1:
 
 with c2:
     st.markdown("### Watchlist")
+
     if neutral_drivers:
         for name, status, explanation in neutral_drivers:
             st.write(f"**{name}:** {explanation}")
@@ -367,6 +450,7 @@ with c2:
 
 with c3:
     st.markdown("### Risks")
+
     if negative_drivers:
         for name, status, explanation in negative_drivers:
             st.write(f"**{name}:** {explanation}")
@@ -377,22 +461,34 @@ with c3:
 # -----------------------------
 # Monthly chart
 # -----------------------------
+
 st.markdown("## Monthly Cash-flow Overview")
 
-monthly_chart = metrics["monthly"].set_index("month")[["inflows", "outflows", "net_cashflow"]]
+# Select the monthly metrics to display in the line chart
+monthly_chart = (
+    metrics["monthly"]
+    .set_index("month")[["inflows", "outflows", "net_cashflow"]]
+)
+
 st.line_chart(monthly_chart)
 
 
 # -----------------------------
 # Transaction preview
 # -----------------------------
+
+# Allow the user to inspect the processed transaction data
 with st.expander("View transaction data"):
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(
+        df,
+        use_container_width=True
+    )
 
 
 # -----------------------------
 # Score methodology explanation
 # -----------------------------
+
 st.markdown("## How the Score Is Calculated")
 
 st.write(
@@ -401,6 +497,7 @@ st.write(
     "based on five cash-flow signals."
 )
 
+# Define the scoring rules displayed in the methodology table
 methodology_data = [
     {
         "Cash-flow signal": "Revenue stability",
@@ -494,11 +591,13 @@ methodology_data = [
     },
 ]
 
+# Convert the scoring rules into a table
 methodology_df = pd.DataFrame(methodology_data)
 st.table(methodology_df)
 
+# Explain the limitations of the current MVP scoring model
 st.caption(
-    "The final score is capped between 0 and 100. In this MVP, the scoring rules are intentionally simple "
-    "and explainable. In a production version, these thresholds would be validated and calibrated using "
-    "real repayment and default outcome data."
+    "The final score is capped between 0 and 100. In this MVP, the scoring rules are "
+    "intentionally simple and explainable. In a production version, these thresholds "
+    "would be validated and calibrated using real repayment and default outcome data."
 )
